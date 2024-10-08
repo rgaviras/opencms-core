@@ -32,6 +32,7 @@ import org.opencms.ade.containerpage.shared.CmsCntPageData.ElementDeleteMode;
 import org.opencms.ade.galleries.shared.CmsGallerySearchScope;
 import org.opencms.ade.upload.CmsDefaultUploadRestriction;
 import org.opencms.ade.upload.I_CmsUploadRestriction;
+import org.opencms.ade.upload.I_CmsVirusScanner;
 import org.opencms.configuration.CmsAdditionalLogFolderConfig;
 import org.opencms.configuration.CmsDefaultUserSettings;
 import org.opencms.db.CmsExportPoint;
@@ -363,6 +364,12 @@ public final class CmsWorkplaceManager implements I_CmsLocaleHandler, I_CmsEvent
 
     /** The configured workplace views. */
     private List<CmsWorkplaceView> m_views;
+
+    /** The configured virus scanner. */
+    private I_CmsVirusScanner m_virusScanner;
+
+    /** True if the virus scanner is enabled. */
+    private boolean m_virusScannerEnabled;
 
     /** Expiring cache used to limit the number of notifications sent because of invalid workplace server names. */
     private Cache<String, String> m_workplaceServerUserChecks;
@@ -1095,8 +1102,8 @@ public final class CmsWorkplaceManager implements I_CmsLocaleHandler, I_CmsEvent
                 }
             } else if (CmsResourceTypeFolder.getStaticTypeName().equals(explorerType.getName())
                 && "view_folders|view_basic".contains(viewName)) {
-                    result.add(explorerType);
-                }
+                result.add(explorerType);
+            }
 
         }
         return result;
@@ -1565,6 +1572,16 @@ public final class CmsWorkplaceManager implements I_CmsLocaleHandler, I_CmsEvent
     }
 
     /**
+     * Gets the configured virus scanner (may be null).
+     *
+     * @return the configured virus scanner
+     */
+    public I_CmsVirusScanner getVirusScanner() {
+
+        return m_virusScanner;
+    }
+
+    /**
      * Returns the instantiated workplace editor manager class.<p>
      *
      * @return the instantiated workplace editor manager class
@@ -1853,6 +1870,16 @@ public final class CmsWorkplaceManager implements I_CmsLocaleHandler, I_CmsEvent
             return null;
         }
 
+    }
+
+    /**
+     * Checks if the virus scanner is enabled.
+     *
+     * @return true if the virus scanner is enabled
+     */
+    public boolean isVirusScannerEnabled() {
+
+        return m_virusScannerEnabled;
     }
 
     /**
@@ -2151,7 +2178,7 @@ public final class CmsWorkplaceManager implements I_CmsLocaleHandler, I_CmsEvent
                 CmsLog.INIT.info(
                     Messages.get().getBundle().key(
                         Messages.INIT_MAX_FILE_UPLOAD_SIZE_1,
-                        new Integer(m_fileMaxUploadSize)));
+                        Integer.valueOf(m_fileMaxUploadSize)));
             } else {
                 CmsLog.INIT.info(Messages.get().getBundle().key(Messages.INIT_MAX_FILE_UPLOAD_SIZE_UNLIMITED_0));
             }
@@ -2308,6 +2335,26 @@ public final class CmsWorkplaceManager implements I_CmsLocaleHandler, I_CmsEvent
                 CmsLog.INIT.info(Messages.get().getBundle().key(Messages.INIT_USER_MANAGEMENT_ICON_DISABLED_0));
             }
         }
+    }
+
+    /**
+     * Sets the virus scanner.
+     *
+     * @param virusScanner the virus scanner to set
+     */
+    public void setVirusScanner(I_CmsVirusScanner virusScanner) {
+
+        m_virusScanner = virusScanner;
+    }
+
+    /**
+     * Sets the virus scanner to enabled/disabled.
+     *
+     * @param enabled true if the virus scanner should be enabled
+     */
+    public void setVirusScannerEnabled(boolean enabled) {
+
+        m_virusScannerEnabled = enabled;
     }
 
     /**
@@ -2676,4 +2723,5 @@ public final class CmsWorkplaceManager implements I_CmsLocaleHandler, I_CmsEvent
         Collections.sort(m_views);
         return m_views;
     }
+
 }

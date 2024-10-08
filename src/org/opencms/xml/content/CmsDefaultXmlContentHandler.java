@@ -51,6 +51,7 @@ import org.opencms.i18n.CmsMessages;
 import org.opencms.i18n.CmsMultiMessages;
 import org.opencms.i18n.CmsMultiMessages.I_KeyFallbackHandler;
 import org.opencms.i18n.CmsResourceBundleLoader;
+import org.opencms.jsp.util.CmsKeyDummyMacroResolver;
 import org.opencms.lock.CmsLock;
 import org.opencms.main.CmsException;
 import org.opencms.main.CmsLog;
@@ -560,9 +561,6 @@ public class CmsDefaultXmlContentHandler implements I_CmsXmlContentHandler, I_Cm
     /** Constant for the "parameters" appinfo element name. */
     public static final String APPINFO_PARAMETERS = "parameters";
 
-    /** version-transformation node name. */
-    public static final String APPINFO_VERSION_TRANSFORMATION = "versiontransformation";
-
     /** Constant for the "preview" appinfo element name. */
     public static final String APPINFO_PREVIEW = "preview";
 
@@ -648,6 +646,9 @@ public class CmsDefaultXmlContentHandler implements I_CmsXmlContentHandler, I_Cm
 
     /** Constant for the "page" value of the appinfo attribute "addto". */
     public static final String APPINFO_VALUE_ADD_TO_PAGE = "page";
+
+    /** version-transformation node name. */
+    public static final String APPINFO_VERSION_TRANSFORMATION = "versiontransformation";
 
     /** Constant for the "visibilities" appinfo element name. */
     public static final String APPINFO_VISIBILITIES = "visibilities";
@@ -772,6 +773,9 @@ public class CmsDefaultXmlContentHandler implements I_CmsXmlContentHandler, I_Cm
     /** The set of allowed templates. */
     protected CmsDefaultSet<String> m_allowedTemplates = new CmsDefaultSet<String>();
 
+    /** The cached map of combined synchronization information. */
+    protected LinkedHashMap<String, SynchronizationMode> m_combinedSynchronizations;
+
     /** The configuration values for the element widgets (as defined in the annotations). */
     protected Map<String, String> m_configurationValues;
 
@@ -832,9 +836,6 @@ public class CmsDefaultXmlContentHandler implements I_CmsXmlContentHandler, I_Cm
     /** The configured settings for the formatters (as defined in the annotations). */
     protected Map<String, CmsXmlContentProperty> m_settings;
 
-    /** Path to XSL transform in VFS to use for version transformation. */
-    protected String m_versionTransformation;
-
     /** The configured locale synchronization elements. */
     protected LinkedHashMap<String, SynchronizationMode> m_synchronizations = new LinkedHashMap<>();
 
@@ -858,6 +859,9 @@ public class CmsDefaultXmlContentHandler implements I_CmsXmlContentHandler, I_Cm
 
     /** The validation rules that cause a warning (as defined in the annotations). */
     protected Map<String, String> m_validationWarningRules;
+
+    /** Path to XSL transform in VFS to use for version transformation. */
+    protected String m_versionTransformation;
 
     /** Change handler configurations. */
     private List<CmsChangeHandlerConfig> m_changeHandlerConfigs = new ArrayList<>();
@@ -927,9 +931,6 @@ public class CmsDefaultXmlContentHandler implements I_CmsXmlContentHandler, I_Cm
 
     /** The map of widget names by path. */
     private Map<String, String> m_widgetNames = new HashMap<>();
-
-    /** The cached map of combined synchronization information. */
-    protected LinkedHashMap<String, SynchronizationMode> m_combinedSynchronizations;
 
     /**
      * Creates a new instance of the default XML content handler.<p>
@@ -1757,11 +1758,86 @@ public class CmsDefaultXmlContentHandler implements I_CmsXmlContentHandler, I_Cm
     }
 
     /**
+     * Gets the validation error message configured in the schema for the element.
+     *
+     * @param elementName the name of the element
+     * @return the validation message
+     */
+    public String getValidationError(String elementName) {
+
+        return m_validationErrorMessages.get(elementName);
+    }
+
+    /**
+     * Gets the validation warning message configured in the schema for the element.
+     *
+     * @param elementName the name of the element
+     * @return the validation message
+     */
+    public String getValidationWarning(String elementName) {
+
+        return m_validationWarningMessages.get(elementName);
+    }
+
+    /**
+     * Helper method for reading a validation message or the corresponding message key.
+     *
+     * @param cms the current CMS context
+     * @param locale the locale
+     * @param elementName the element name
+     * @param isWarning true if we want the warning message, false for the error message
+     * @param keyOnly true if we want the key rather than the message
+     *
+     * @return the message or message key
+     */
+    public String getValidationWarningOrErrorMessage(
+        CmsObject cms,
+        Locale locale,
+        String elementName,
+        boolean isWarning,
+        boolean keyOnly) {
+
+        String rawValue = (isWarning ? m_validationWarningMessages : m_validationErrorMessages).get(elementName);
+        if (rawValue == null) {
+            return null;
+        }
+        CmsMacroResolver resolver = CmsMacroResolver.newInstance().setCmsObject(cms).setMessages(getMessages(locale));
+        if (keyOnly) {
+            resolver = new CmsKeyDummyMacroResolver(resolver);
+        }
+        String resolved = resolver.resolveMacros(rawValue);
+        if (keyOnly) {
+            return CmsKeyDummyMacroResolver.getKey(resolved);
+        } else {
+            return resolved;
+        }
+    }
+
+    /**
      * @see org.opencms.xml.content.I_CmsXmlContentHandler#getVersionTransformation()
      */
     public String getVersionTransformation() {
 
         return m_versionTransformation;
+    }
+
+    /**
+     * Returns the configured visibility parameter string for the given field if the content handler itself is the
+     * visibility handler, and null otherwise.
+     *
+     * @param field a field name
+     * @return the visibility parameter
+     */
+    public String getVisibilityConfigString(String field) {
+
+        VisibilityConfiguration visConfig = m_visibilityConfigurations.get(field);
+        if (visConfig == null) {
+            return null;
+        }
+        if (visConfig.getHandler() == this) {
+            return visConfig.getParams();
+        }
+        return null;
     }
 
     /**
@@ -3054,6 +3130,12 @@ public class CmsDefaultXmlContentHandler implements I_CmsXmlContentHandler, I_Cm
         }
         if (!CmsStringUtil.isEmptyOrWhitespaceOnly(ruleRegex)) {
             addValidationRule(contentDef, name, ruleRegex, error, "warning".equalsIgnoreCase(ruleType));
+        } else if (!CmsStringUtil.isEmptyOrWhitespaceOnly(error)) {
+            if ("warning".equalsIgnoreCase(ruleType)) {
+                m_validationWarningMessages.put(name, error);
+            } else {
+                m_validationErrorMessages.put(name, error);
+            }
         }
 
         String defaultValue = elem.elementText(CmsConfigurationReader.N_DEFAULT);
@@ -4245,10 +4327,12 @@ public class CmsDefaultXmlContentHandler implements I_CmsXmlContentHandler, I_Cm
             }
         } catch (CmsException e) {
             if (errorHandler != null) {
+                String message = getErrorMessage(cms, value.getName());
+                if (message == null) {
+                    message = Messages.get().getBundle(value.getLocale()).key(Messages.GUI_XMLCONTENT_CHECK_ERROR_0);
+                }
                 // generate error message
-                errorHandler.addError(
-                    value,
-                    Messages.get().getBundle(value.getLocale()).key(Messages.GUI_XMLCONTENT_CHECK_ERROR_0));
+                errorHandler.addError(value, message);
             }
             return true;
         }
@@ -4630,6 +4714,19 @@ public class CmsDefaultXmlContentHandler implements I_CmsXmlContentHandler, I_Cm
         fieldMapping.setLocale(locale);
         fieldMapping.setDefaultValue(element.attributeValue(APPINFO_ATTR_DEFAULT));
         return fieldMapping;
+    }
+
+    /**
+     * Gets the localized error message for a specific field.
+     * @param cms the CMS context
+     * @param element the field name
+     */
+    private String getErrorMessage(CmsObject cms, String element) {
+
+        String configuredMessage = m_validationErrorMessages.get(element);
+        CmsMacroResolver resolver = CmsMacroResolver.newInstance().setCmsObject(cms).setMessages(
+            getMessages(OpenCms.getWorkplaceManager().getWorkplaceLocale(cms)));
+        return resolver.resolveMacros(configuredMessage);
     }
 
     /**

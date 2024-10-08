@@ -2319,6 +2319,16 @@
         </attribute>
         <attribute>
             <description><![CDATA[
+            	A container type used to select a formatter.
+            	<p>When a content is to be displayed, and no formatter has been specified for its type, then if this attribute is set, an active formatter for its resource type which matches the given container type 
+            	will be selected (formatters with higher rank will be prioritized).</p>
+            ]]></description>
+            <name>containerType</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+        <attribute>
+            <description><![CDATA[
                 <p>If set to <code>true</code>, the "Edit" button is added to the edit buttons.</p>
                 <p><em>Default: <code>false</code></em></p>
             ]]></description>
@@ -2529,7 +2539,7 @@
 
     <tag>
         <description><![CDATA[
-            <p>This tag can be used only inside <code>&lt;cms:display&gt;</code>. It specifies which formatter should be used to format a content of a special resource type.
+            <p>This tag can be used only inside <code>&lt;cms:display&gt;</code>. It specifies which formatter should be used to format a content of a special resource type, either using a formatter key, or the path of the formatter configuration file.
             </p>
             <p>Note that alternatively, the attribute <code>displayFormatters</code> of the tag <code>&lt;cms:display&gt;</code> can be used to specify these formatters.</p>
         ]]></description>
@@ -2547,11 +2557,29 @@
         <attribute>
             <description><![CDATA[
                 The path to the formatter configuration of the formatter that should be used.
+                <br><em>Deprecated.</em> Use the formatter attribute.
             ]]></description>
             <name>path</name>
-            <required>true</required>
+            <required>false</required>
             <rtexprvalue>true</rtexprvalue>
         </attribute>
+        <attribute>
+            <description><![CDATA[
+                The key of the formatter that should be used. 
+            ]]></description>
+            <name>formatterKey</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+        <attribute>
+        <description><![CDATA[
+                The path to the formatter configuration of the formatter that should be used.
+            ]]></description>
+            <name>formatter</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+        
     </tag>
 
     <tag>

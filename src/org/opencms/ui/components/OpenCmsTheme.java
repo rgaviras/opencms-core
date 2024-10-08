@@ -125,6 +125,9 @@ public final class OpenCmsTheme {
     /** CSS style name. */
     public static final String CRUMBS = "o-crumbs";
 
+    /** CSS style name.*/
+    public static final String DELETE_UNUSED = "oc-icon-32-delete-unused";
+
     /** CSS style name. */
     public static final String DIALOG = "o-dialog";
 
@@ -197,8 +200,8 @@ public final class OpenCmsTheme {
     /** The database icon CSS class. */
     public static final String ICON_DATABASE = "oc-icon-24-database";
 
-    /** CSS style name.*/
-    public static final String DELETE_UNUSED = "oc-icon-32-delete-unused";
+    /** CSS class for the date search app icon. */
+    public static final String ICON_DATE_SEARCH = "oc-icon-32-date-search";
 
     /** CSS style name.*/
     public static final String ICON_EXLPORER = "oc-icon-24-folder";
@@ -215,6 +218,9 @@ public final class OpenCmsTheme {
     /**The Log icon. */
     public static final String ICON_LOG = "oc-icon-24-log";
 
+    /** CSS class for a newsletter app icon (app is not part of core). */
+    public static final String ICON_NEWSLETTER = "oc-icon-32-newsletter";
+
     /**Icon for OUs. */
     public static final String ICON_OU = "oc-icon-24-orgunit";
 
@@ -223,6 +229,9 @@ public final class OpenCmsTheme {
 
     /** CSS style name.*/
     public static final String ICON_PERSON_DATA = "oc-icon-32-person-data";
+
+    /** CSS class for a redirect app icon (app is not part of core). */
+    public static final String ICON_REDIRECT = "oc-icon-32-redirect";
 
     /** The icon for all principal option (currently used in principal select).*/
     public static final String ICON_PRINCIPAL_ALL = "oc-icon-24-principal-all";
@@ -480,6 +489,9 @@ public final class OpenCmsTheme {
 
     /** CSS style name. */
     public static final String TYPE_FILTER_BUTTON_ACTIVE = "o-type-filter-button-active";
+
+    /** CSS style name. */
+    public static final String TYPE_SELECT = "o-type-select-box";
 
     /** CSS style name. */
     public static final String USER_IMAGE = "o-user-image";

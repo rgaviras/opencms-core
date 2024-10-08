@@ -67,6 +67,7 @@ import org.opencms.file.CmsRequestContext;
 import org.opencms.file.CmsResource;
 import org.opencms.file.CmsResourceFilter;
 import org.opencms.file.CmsUser;
+import org.opencms.file.CmsVfsResourceAlreadyExistsException;
 import org.opencms.file.CmsVfsResourceNotFoundException;
 import org.opencms.file.history.CmsHistoryResourceHandler;
 import org.opencms.file.types.CmsResourceTypeFolder;
@@ -1334,34 +1335,6 @@ public class CmsVfsSitemapService extends CmsGwtService implements I_CmsSitemapS
     }
 
     /**
-     * Removes unnecessary locales from a container page.<p>
-     *
-     * @param containerPage the container page which should be changed
-     * @param localeRes the resource used to determine the locale
-     *
-     * @throws CmsException if something goes wrong
-     */
-    void ensureSingleLocale(CmsXmlContainerPage containerPage, CmsResource localeRes) throws CmsException {
-
-        CmsObject cms = getCmsObject();
-        Locale mainLocale = CmsLocaleManager.getMainLocale(cms, localeRes);
-        OpenCms.getLocaleManager();
-        Locale defaultLocale = CmsLocaleManager.getDefaultLocale();
-        if (containerPage.hasLocale(mainLocale)) {
-            removeAllLocalesExcept(containerPage, mainLocale);
-            // remove other locales
-        } else if (containerPage.hasLocale(defaultLocale)) {
-            containerPage.copyLocale(defaultLocale, mainLocale);
-            removeAllLocalesExcept(containerPage, mainLocale);
-        } else if (containerPage.getLocales().size() > 0) {
-            containerPage.copyLocale(containerPage.getLocales().get(0), mainLocale);
-            removeAllLocalesExcept(containerPage, mainLocale);
-        } else {
-            containerPage.addLocale(cms, mainLocale);
-        }
-    }
-
-    /**
      * Gets the properties of a resource as a map of client properties.<p>
      *
      * @param cms the CMS context to use
@@ -1958,7 +1931,6 @@ public class CmsVfsSitemapService extends CmsGwtService implements I_CmsSitemapS
                         cms.readFile(copyPage),
                         true,
                         true);
-                    ensureSingleLocale(page, entryFolder);
                     CmsContainerPageWrapper wrapper = new CmsContainerPageWrapper(cms, page);
                     if (isFunctionDetail) {
                         String functionDetailContainer = getFunctionDetailContainerName(parentFolder);
@@ -3032,10 +3004,8 @@ public class CmsVfsSitemapService extends CmsGwtService implements I_CmsSitemapS
                 entryFolder = entryPage;
             }
 
-            updateProperties(cms, ownRes, defaultFileRes, change.getPropertyChanges());
-            if (change.hasChangedPosition()) {
-                updateNavPos(ownRes, change);
-            }
+            String moveSrc = null;
+            String moveDest = null;
 
             if (entryFolder != null) {
                 if (change.hasNewParent() || change.hasChangedName()) {
@@ -3056,13 +3026,28 @@ public class CmsVfsSitemapService extends CmsGwtService implements I_CmsSitemapS
                     // only if the site-path has really changed
                     if (!CmsFileUtil.removeTrailingSeparator(cms.getSitePath(entryFolder)).equals(
                         CmsFileUtil.removeTrailingSeparator(destinationPath))) {
-                        cms.moveResource(cms.getSitePath(entryFolder), destinationPath);
+                        moveSrc = cms.getSitePath(entryFolder);
+                        moveDest = CmsFileUtil.removeTrailingSeparator(destinationPath);
                     }
-                    entryFolder = cms.readResource(
-                        entryFolder.getStructureId(),
-                        CmsResourceFilter.ONLY_VISIBLE_NO_DELETED);
                 }
             }
+            if ((moveDest != null) && cms.existsResource(moveDest, CmsResourceFilter.IGNORE_EXPIRATION)) {
+                throw new CmsVfsResourceAlreadyExistsException(
+                    org.opencms.db.generic.Messages.get().container(
+                        org.opencms.db.generic.Messages.ERR_RESOURCE_WITH_NAME_ALREADY_EXISTS_1,
+                        moveDest));
+            }
+
+            updateProperties(cms, ownRes, defaultFileRes, change.getPropertyChanges());
+            if (change.hasChangedPosition()) {
+                updateNavPos(ownRes, change);
+            }
+
+            if (moveDest != null) {
+                cms.moveResource(moveSrc, moveDest);
+            }
+            entryFolder = cms.readResource(entryFolder.getStructureId(), CmsResourceFilter.ONLY_VISIBLE_NO_DELETED);
+
         } finally {
             if (entryPage != null) {
                 tryUnlock(entryPage);
