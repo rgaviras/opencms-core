@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 OpenCms is a Java/XML web content management system (Alkacon Software). This repo is the core product: a large monolithic Gradle project with a custom, non-standard source layout (predates Maven-style conventions) plus a set of "core" OpenCms modules (VFS-deployed content/config packages, not Gradle subprojects).
 
-Requires Java 21 or 25. Build is Gradle-based (wrapper included, target Gradle 7.5.1).
+Requires Java 11 or 17. Build is Gradle-based (wrapper included, target Gradle 7.5.1).
 
 ## Build commands
 
@@ -78,7 +78,7 @@ Because these are separate source sets/configurations (`compile`, `modulesCompil
   - `xml/` — XML content schema handling (structured content types)
   - `staticexport/`, `publish/`, `importexport/` — static HTML export, the online/offline publish workflow, VFS import/export
   - `workflow/`, `scheduler/`, `letsencrypt/`, `webdav/`, `cmis/`, `jlan/` (SMB), `rmi/` — integration/protocol layers
-- **GWT/server pairing**: client modules declared in `src-gwt/gwt-modules.properties` (`org.opencms.ade.OpenCms`, `org.opencms.ugc.Ugc`, `org.opencms.ui.WidgetSet`) are compiled by the `gwt_<module>` tasks and correspond to RPC services in `src/org/opencms/gwt/`. `super_src/` directories under `src-gwt` are GWT super-source overrides (excluded from the normal `gwt`/`testGwt` compile, picked up specially by the GWT compiler) — e.g. the Vaadin date-picker fix in recent history lives there.
+- **GWT/server pairing**: client modules declared in `src-gwt/gwt-modules.properties` (`org.opencms.ade.OpenCms`, `org.opencms.ugc.Ugc`, `org.opencms.ui.WidgetSet`) are compiled by the `gwt_<module>` tasks and correspond to RPC services in `src/org/opencms/gwt/`. `super_src/` directories under `src-gwt` are GWT super-source overrides (excluded from the normal `gwt`/`testGwt` compile, picked up specially by the GWT compiler) — used e.g. under `src-gwt/org/opencms/ui/client/super_src` for Vaadin client-side overrides.
 - **Configuration**: system behavior is driven by XML in `webapp/WEB-INF/config/opencms-*.xml`, parsed by handler classes in `src/org/opencms/configuration/`. The `modules/org.opencms.configuration` module ships default versions of notification templates etc. under `resources/system/config/notification/`.
 
 ## Code style

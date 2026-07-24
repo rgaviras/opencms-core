@@ -29,3 +29,7 @@
 Thumbs.db
 /build/
 /module-export.sh
+# IntelliJ
+.idea/
+*.iml
+out/
