@@ -101,6 +101,9 @@ public class CmsPublishGroupPanel extends Composite {
     /** The number of button slits. */
     private static final int NUM_BUTTON_SLOTS = 4;
 
+    /** The default XML content resource type name. */
+    private static final String RESOURCE_TYPE_XMLCONTENT = "xmlcontent";
+
     /** Text metrics key. */
     private static final String TM_PUBLISH_LIST = "PublishList";
 
@@ -367,7 +370,7 @@ public class CmsPublishGroupPanel extends Composite {
 
         CmsListItemWidget itemWidget = createListItemWidget(resourceBean, DEFAULT_SLOT_MAPPING);
         if ((m_editorHandler != null)
-            && resourceBean.isXmlContent()
+            && RESOURCE_TYPE_XMLCONTENT.equals(resourceBean.getResourceType())
             && resourceBean.getPermissionInfo().hasWritePermission()) {
             CmsPushButton editButton = new CmsPushButton();
             editButton.setImageClass(I_CmsButton.PEN_SMALL);

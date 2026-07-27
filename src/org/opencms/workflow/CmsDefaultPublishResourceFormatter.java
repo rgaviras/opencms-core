@@ -430,15 +430,17 @@ public class CmsDefaultPublishResourceFormatter implements I_CmsPublishResourceF
         CmsPermissionInfo permissionInfo = OpenCms.getADEManager().getPermissionInfo(m_cms, resource, null);
 
         String typeName = CmsIconUtil.getDisplayType(m_cms, resource);
+        String publishResourceType = CmsResourceTypeXmlContent.isXmlContent(resource)
+            ? CmsResourceTypeXmlContent.getStaticTypeName()
+            : typeName;
         String detailTypeName = CmsResourceIcon.getDefaultFileOrDetailType(m_cms, resource);
         CmsPublishResource pubResource = new CmsPublishResource(
             resource.getStructureId(),
             resUtil.getFullPath(),
             resUtil.getTitle(),
-            typeName,
+            publishResourceType,
             resource.getState(),
             permissionInfo,
-            CmsResourceTypeXmlContent.isXmlContent(resource),
             resource.getDateLastModified(),
             resUtil.getUserLastModified(),
             CmsVfsService.formatDateTime(m_cms, resource.getDateLastModified()),

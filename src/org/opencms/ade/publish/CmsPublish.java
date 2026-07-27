@@ -335,7 +335,6 @@ public class CmsPublish {
             CmsResourceTypePlain.getStaticTypeName(),
             CmsResourceState.STATE_UNCHANGED,
             permissionInfo,
-            false /*type doesn't matter, we can't edit it anyway. */ ,
             0,
             null,
             null,
@@ -381,6 +380,9 @@ public class CmsPublish {
         CmsPermissionInfo permissionInfo = OpenCms.getADEManager().getPermissionInfo(m_cms, resource, null);
 
         String typeName = CmsIconUtil.getDisplayType(m_cms, resource);
+        String publishResourceType = CmsResourceTypeXmlContent.isXmlContent(resource)
+            ? CmsResourceTypeXmlContent.getStaticTypeName()
+            : typeName;
         String detailTypeName = null;
         detailTypeName = CmsResourceIcon.getDefaultFileOrDetailType(m_cms, resource);
 
@@ -388,10 +390,9 @@ public class CmsPublish {
             resource.getStructureId(),
             resUtil.getFullPath(),
             resUtil.getTitle(),
-            typeName,
+            publishResourceType,
             resource.getState(),
             permissionInfo,
-            CmsResourceTypeXmlContent.isXmlContent(resource),
             resource.getDateLastModified(),
             resUtil.getUserLastModified(),
             CmsVfsService.formatDateTime(m_cms, resource.getDateLastModified()),
