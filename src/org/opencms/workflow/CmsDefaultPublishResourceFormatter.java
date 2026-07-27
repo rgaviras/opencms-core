@@ -37,7 +37,6 @@ import org.opencms.file.CmsProject;
 import org.opencms.file.CmsResource;
 import org.opencms.file.CmsResourceFilter;
 import org.opencms.file.CmsUser;
-import org.opencms.file.types.CmsResourceTypeXmlContent;
 import org.opencms.gwt.CmsIconUtil;
 import org.opencms.gwt.CmsVfsService;
 import org.opencms.gwt.shared.CmsPermissionInfo;
@@ -438,7 +437,6 @@ public class CmsDefaultPublishResourceFormatter implements I_CmsPublishResourceF
             typeName,
             resource.getState(),
             permissionInfo,
-            CmsResourceTypeXmlContent.isXmlContent(resource),
             resource.getDateLastModified(),
             resUtil.getUserLastModified(),
             CmsVfsService.formatDateTime(m_cms, resource.getDateLastModified()),
